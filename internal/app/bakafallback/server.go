@@ -32,11 +32,7 @@ func newRequestHandler(accessToken string, refreshToken string, api *bakalari.Ap
 	}
 
 	go func() {
-		//d := time.Now()
-		d, err := time.Parse(time.DateOnly, "2025-01-06")
-		if err != nil {
-			log.Fatal("wtf jak")
-		}
+		d := time.Now()
 
 		for {
 			timetable, err := api.FetchTimetable(accessToken, &d)
