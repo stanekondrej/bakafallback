@@ -2,12 +2,96 @@ package bakafallback
 
 import (
 	_ "embed"
+	"fmt"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/stanekondrej/bakalari/pkg/bakalari"
 )
+
+type Renderer struct {
+	hours    []bakalari.Hour
+	teachers map[string]bakalari.Teacher
+	subjects map[string]bakalari.Subject
+	rooms    map[string]bakalari.Room
+	days     []bakalari.Day
+}
+
+func newRenderer(timetable *bakalari.Timetable) *Renderer {
+	if timetable == nil {
+		log.Fatal("Rozvrh byl nil (funkce newRenderer)")
+	}
+
+	return &Renderer{
+		hours:    timetable.Hours,
+		teachers: makeTeacherMap(timetable.Teachers),
+		subjects: makeSubjectMap(timetable.Subjects),
+		rooms:    makeRoomMap(timetable.Rooms),
+		days:     timetable.Days,
+	}
+}
+
+func (r *Renderer) renderTimetable() (html string) {
+	html = "<table>"
+	html += r.renderHourRow()
+
+	for i, day := range r.days {
+		html += `<tr class="day">`
+		html += `<td class="day-label">` + dayOfWeekToString(uint(i)) + "</td>"
+
+		atoms := makeAtomMap(day.Atoms)
+
+		for _, hour := range r.hours {
+			html += `<td class="hour">`
+
+			a, ok := atoms[hour.Id]
+
+			if ok {
+				html += `<p class="room-abbrev">` + r.rooms[a.RoomId].Abbrev + "</p>"
+				html += `<p class="subject-abbrev">` + r.subjects[a.SubjectId].Abbrev + "</p>"
+				html += `<p class="teacher-abbrev">` + r.teachers[a.TeacherId].Abbrev + "</p>"
+			}
+
+			html += "</td>"
+		}
+
+		html += "</tr>"
+	}
+
+	return
+}
+
+func dayOfWeekToString(i uint) string {
+	days := []string{"Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek"}
+
+	return days[i]
+}
+
+func (r *Renderer) renderHourRow() (html string) {
+	html = `<tr class="hours-row">`
+	html += "<td></td>" // prázdná buňka
+
+	for i, h := range r.hours {
+		html += renderHour(&h, uint(i))
+	}
+
+	html += "</tr>"
+	return
+}
+
+func renderHour(h *bakalari.Hour, index uint) (html string) {
+	if h == nil {
+		log.Fatal("Hodina byla nil (funkce renderHour)")
+	}
+
+	html = `<td class="hour">`
+	html += fmt.Sprintf(`<p class="hour-id">%d</p>`, index)
+	html += fmt.Sprintf(`<p class="hour-times">%s - %s</p>`, h.BeginTime, h.EndTime)
+	html += "</td>"
+
+	return
+}
 
 func makeAtomMap(atoms []bakalari.Atom) map[uint]bakalari.Atom {
 	m := make(map[uint]bakalari.Atom)
@@ -54,38 +138,10 @@ func renderTimetable(timetable *bakalari.Timetable) string {
 		log.Fatal("Rozvrh byl nil")
 	}
 
-	teachers := makeTeacherMap(timetable.Teachers)
-	subjects := makeSubjectMap(timetable.Subjects)
-	rooms := makeRoomMap(timetable.Rooms)
+	renderer := newRenderer(timetable)
+	html := renderer.renderTimetable()
 
-	result := "<table>"
-
-	for _, day := range timetable.Days {
-		atoms := makeAtomMap(day.Atoms)
-		result += "<tr>"
-
-		for _, hour := range timetable.Hours {
-			result += "<td>"
-
-			a, ok := atoms[hour.Id]
-			if !ok {
-				result += "</td>"
-				continue
-			}
-
-			result += `<p class="room-abbrev">` + rooms[a.RoomId].Abbrev + "</p>"
-			result += `<p class="subject-abbrev">` + subjects[a.SubjectId].Abbrev + "</p>"
-			result += `<p class="teacher-abbrev">` + teachers[a.TeacherId].Abbrev + "</p>"
-
-			result += "</td>"
-		}
-
-		result += "</tr>"
-	}
-
-	result += "</table>"
-
-	return result
+	return html
 }
 
 func renderStatus() string {

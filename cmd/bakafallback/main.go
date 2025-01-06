@@ -10,19 +10,19 @@ import (
 )
 
 func getEnv() (username, password, url string) {
-	username, ok := os.LookupEnv("BAKAFALLBACK_USERNAME")
+	username, ok := os.LookupEnv("BAKALARI_USERNAME")
 	if !ok {
-		log.Fatal("BAKAFALLBACK_USERNAME není nastaveno")
+		log.Fatal("BAKALARI_USERNAME není nastaveno")
 	}
 
-	password, ok = os.LookupEnv("BAKAFALLBACK_PASSWORD")
+	password, ok = os.LookupEnv("BAKALARI_PASSWORD")
 	if !ok {
-		log.Fatal("BAKAFALLBACK_PASSWORD není nastaveno")
+		log.Fatal("BAKALARI_PASSWORD není nastaveno")
 	}
 
-	url, ok = os.LookupEnv("BAKAFALLBACK_URL")
+	url, ok = os.LookupEnv("BAKALARI_URL")
 	if !ok {
-		log.Fatal("BAKAFALLBACK_URL není nastaveno")
+		log.Fatal("BAKALARI_URL není nastaveno")
 	}
 
 	return
