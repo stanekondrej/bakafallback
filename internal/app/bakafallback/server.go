@@ -35,6 +35,8 @@ func newRequestHandler(accessToken string, refreshToken string, api *bakalari.Ap
 		d := time.Now()
 
 		for {
+			log.Println("Aktualizuji rozvrh")
+
 			timetable, err := api.FetchTimetable(accessToken, &d)
 			if err != nil {
 				log.Println(err)
@@ -43,9 +45,13 @@ func newRequestHandler(accessToken string, refreshToken string, api *bakalari.Ap
 				continue
 			}
 
+			log.Println("Rozvrh aktualizován, vyplňuji znovu HTML šablonu")
+
 			html := RenderPage(timetable)
 			rh.timetable = timetable
 			rh.cachedHtml = html
+
+			log.Println("Šablona vyplněna, mezipaměť aktualizována")
 
 			time.Sleep(updateInterval)
 		}
@@ -55,10 +61,14 @@ func newRequestHandler(accessToken string, refreshToken string, api *bakalari.Ap
 }
 
 func (rh *requestHandler) handleRequest(w http.ResponseWriter, r *http.Request) {
+	log.Println("Přijímám požadavek")
+
 	_, err := w.Write([]byte(rh.cachedHtml))
 	if err != nil {
 		log.Println(err)
 	}
+
+	log.Println("Požadavek odbaven")
 }
 
 func StartServer(accessToken string, refreshToken string, api *bakalari.Api) {

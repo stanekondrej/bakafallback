@@ -41,5 +41,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	log.Printf("Přihlášen jako uživatel %s", username)
+
 	bakafallback.StartServer(accessToken, refreshToken, api)
 }
